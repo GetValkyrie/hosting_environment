@@ -1,0 +1,88 @@
+<?php
+/**
+ * @file
+ * The hosting integration for the Environment module.
+ */
+
+/**
+ * Implements hook_form_alter().
+ */
+function hosting_environment_form_alter(&$form, $form_state, $form_id) {
+  if ($form_id == 'site_node_form') {
+
+    $form['environment'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Environment settings'),
+      '#description' => t('Specify the environment that this site should run under.'),
+    );
+
+    $form['environment']['environment'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Environment'),
+      '#default_value' => isset($form['#node']->environment) ? $form['#node']->environment : '',
+      '#weight' => 0,
+    );
+    return $form;
+  }
+}
+
+/**
+ * Implements hook_node_insert().
+ */
+function hosting_environment_node_insert($node) {
+  if ($node->type == 'site' && !empty($node->environment)) {
+    $id = db_insert('hosting_environment')->fields(array(
+      'vid' => $node->vid,
+      'nid' => $node->nid,
+      'environment' => $node->environment,
+    ))
+    ->execute();
+  }
+}
+
+/**
+ * Implements hook_node_update().
+ */
+function hosting_environment_node_update($node) {
+  if (FALSE === db_query("SELECT environment FROM {hosting_environment} WHERE vid = :vid", array(':vid' => $node->vid))->fetchField()) {
+    hosting_environment_node_insert($node);
+  }
+  else {
+    db_update('hosting_environment')
+      ->fields(array(
+        'environment' => $node->environment,
+      ))
+      ->condition('vid', $node->vid)
+      ->execute();
+  }
+}
+
+/**
+ * Implements hook_node_load().
+ */
+function hosting_environment_node_load($nodes, $types) {
+  foreach ($nodes as $nid => &$node) {
+    if ($node->type == 'site') {
+      // array instead
+      $nodes[$nid]->environment = db_query("SELECT environment FROM {hosting_environment} WHERE vid = :vid", array(':vid' => $node->vid))->fetchField();;
+    }
+  }
+}
+
+/**
+ * Implements hook_node_delete().
+ */
+function hosting_environment_node_delete($node) {
+  db_delete('hosting_environment')
+    ->condition('nid', $node->nid)
+    ->execute();
+}
+
+/**
+ * Implements hook_revision_revision().
+ */
+function hosting_environment_node_revision_delete($node) {
+  db_delete('hosting_environment')
+    ->condition('vid', $node->vid)
+    ->execute();
+}

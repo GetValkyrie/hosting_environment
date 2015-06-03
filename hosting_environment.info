@@ -1,0 +1,6 @@
+name = Hosting Environment
+description = Integration between Aegir and the Environment module..
+package = Hosting
+dependencies[] = hosting_site
+
+core = 7.x
