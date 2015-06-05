@@ -28,19 +28,41 @@ function environment_provision_register_autoload() {
  */
 function environment_provision_services() {
   environment_provision_register_autoload();
-  return array('environment' => NULL);
+  return array('environment' => 'environment');
 }
 
 /**
  * Implements drush_hook_post_COMMAND().
  */
 function drush_environment_post_provision_install() {
-  drush_log('environment received from the frontend (d()->environment): ' . d()->environment);
+  if (_environment_enabled()) {
+    d()->service('environment')->post_install();
+  }
+}
+
+function _environment_enabled() {
+  return (
+    d()->type == 'site' &&           // Environments only apply to sites.
+    d()->profile != 'hostmaster' &&  // Let's be extra careful w/ Aegir.
+    isset(d()->environment) &&
+    !is_null(d()->environment)
+  );
 }
 
 /**
  * Implements drush_hook_post_COMMAND().
  */
 function drush_environment_post_provision_verify() {
-  drush_log('environment received from the frontend (d()->environment): ' . d()->environment);
+  if (_environment_enabled()) {
+    d()->service('environment')->post_verify();
+  }
+}
+
+/**
+ * Implements hook_provision_drupal_config().
+ */
+function environment_provision_drupal_config($uri, $data) {
+  if (_environment_enabled()) {
+    return d()->service('environment')->drupal_config($uri, $data);
+  }
 }
