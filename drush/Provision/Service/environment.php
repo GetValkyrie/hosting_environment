@@ -26,7 +26,7 @@ class Provision_Service_environment extends Provision_Service {
   function post_verify() {
     if (module_exists('environment')) {
       $env = $this->get_environment();
-      drush_log(dt('Setting site environment to %env', array('%env' => $env)), 'warning');
+      drush_log(dt('Setting site environment to %env', array('%env' => $env)));
       // 'env-switch' will need the '--force' flag to allow it to run even if the
       // current environment already matches the one we're trying to set it to.
       // We'll set this option back to it's original value afterwards, so we save
