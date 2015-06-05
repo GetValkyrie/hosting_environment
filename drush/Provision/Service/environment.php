@@ -52,6 +52,7 @@ class Provision_Service_environment extends Provision_Service {
     drush_log('Injecting environment name into site settings.php');
     $lines = array();
     $lines[] = "  \$conf['environment'] = '" . $this->get_environment() . "';";
+    $lines[] = "  \$conf['environment_require_override'] = TRUE;";
     return implode("\n", $lines);
   }
 
